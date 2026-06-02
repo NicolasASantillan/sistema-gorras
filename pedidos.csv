@@ -1,0 +1,2 @@
+ID_Pedido,Fecha,Cliente,Localidad,Productos_JSON,Total_Unidades,Total_Pesos,Estado
+P0001,2026-06-02 13:47,samuel,corrientes,"{""LisaNegra"": 2}",2,9000,Cancelado
