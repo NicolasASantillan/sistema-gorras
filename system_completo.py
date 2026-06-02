@@ -139,16 +139,16 @@ if opcion == "🛍️ Catálogo de Clientes":
                 faltante = MINIMO_UNIDADES - total_items
                 st.sidebar.warning(f"⚠️ **Mínimo no alcanzado:** Te faltan **{faltante}** gorras para poder pedir.")
             else:
-                nombre_cliente = st.sidebar.text_input("Tu Nombre:", disabled=st.session_state['pedido_procesado']).strip()
-                localidad_cliente = st.sidebar.text_input("Ciudad / Provincia:", disabled=st.session_state['pedido_procesado']).strip()
+                nombre_cliente = st.sidebar.text_input("Tu Nombre:", disabled=st.session_state.get('pedido_procesado', False)).strip()
+                localidad_cliente = st.sidebar.text_input("Ciudad / Provincia:", disabled=st.session_state.get('pedido_procesado', False)).strip()
                 
                 if nombre_cliente and localidad_cliente:
-                    if not st.session_state['pedido_procesado']:
+                    if not st.session_state.get('pedido_procesado', False):
                         if st.sidebar.button("🔒 1. Reservar Pedido", use_container_width=True):
                             df_stock_actual = cargar_datos()
                             for p_id, info in pedido_cliente.items():
                                 df_stock_actual.loc[df_stock_actual['ID'] == p_id, 'Stock'] -= info['Cantidad']
-                            
+                                
                             df_pedidos_actual = cargar_pedidos()
                             nuevo_id = f"P{len(df_pedidos_actual) + 1:04d}"
                             json_productos = json.dumps({k: v['Cantidad'] for k, v in pedido_cliente.items()})
@@ -168,13 +168,16 @@ if opcion == "🛍️ Catálogo de Clientes":
                             st.sidebar.success(f"¡Reserva N° {nuevo_id} exitosa!")
                             st.rerun()
                     else:
-                        st.sidebar.info(f"Pedido Guardado (N° {st.session_state['id_pedido_actual']})")
+                        # 💡 Creamos una variable segura. Si no existe el ID, usa '0000' en vez de crasear
+                        id_actual = st.session_state.get('id_pedido_actual', '0000')
+                        
+                        st.sidebar.info(f"Pedido Guardado (N° {id_actual})")
                         
                         # Generar PDF
                         pdf = FPDF()
                         pdf.add_page()
                         pdf.set_font("helvetica", "B", 16)
-                        pdf.cell(0, 10, f"PEDIDO MAYORISTA Nro: {st.session_state['id_pedido_actual']}", ln=True, align="C")
+                        pdf.cell(0, 10, f"PEDIDO MAYORISTA Nro: {id_actual}", ln=True, align="C")
                         pdf.ln(5)
                         pdf.set_font("helvetica", "", 12)
                         pdf.cell(0, 8, f"Cliente: {nombre_cliente} | Ubicación: {localidad_cliente}", ln=True)
@@ -186,9 +189,15 @@ if opcion == "🛍️ Catálogo de Clientes":
                         pdf.cell(0, 8, f"Monto Total: ${total_pedido:,}", ln=True)
                         
                         pdf_bytes = pdf.output()
-                        st.sidebar.download_button(label="📥 2. Descargar PDF", data=bytes(pdf_bytes), file_name=f"Pedido_{st.session_state['id_pedido_actual']}.pdf", mime="application/pdf", use_container_width=True)
+                        st.sidebar.download_button(
+                            label="📥 2. Descargar PDF", 
+                            data=bytes(pdf_bytes), 
+                            file_name=f"Pedido_{id_actual}.pdf", 
+                            mime="application/pdf", 
+                            use_container_width=True
+                        )
                         
-                        msg = f"¡Hola! Registré mi pedido Nro {st.session_state['id_pedido_actual']} por {total_items} gorras a nombre de {nombre_cliente}."
+                        msg = f"¡Hola! Registré mi pedido Nro {id_actual} por {total_items} gorras a nombre de {nombre_cliente}."
                         url_wa = f"https://wa.me/{NUMERO_WHATSAPP}?text={urllib.parse.quote(msg)}"
                         st.sidebar.markdown(f'<a href="{url_wa}" target="_blank"><button style="width:100%; background-color:#25D366; color:white; border:none; padding:10px; border-radius:5px; font-weight:bold; cursor:pointer;">📲 3. Enviar WhatsApp</button></a>', unsafe_allow_html=True)
                         
