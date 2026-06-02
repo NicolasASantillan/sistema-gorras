@@ -7,6 +7,13 @@ import datetime
 from fpdf import FPDF
 from PIL import Image
 
+# --- ESTO TIENE QUE ESTAR ARRIBA DE TODO ---
+if 'pedido_procesado' not in st.session_state:
+    st.session_state['pedido_procesado'] = False
+
+if 'id_pedido_actual' not in st.session_state:
+    st.session_state['id_pedido_actual'] = ""
+
 # --- CONFIGURACIÓN E INICIALIZACIÓN ---
 st.set_page_config(page_title="Sistema Integral - Gorras Mayorista", layout="wide")
 
